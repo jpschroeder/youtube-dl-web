@@ -1,0 +1,57 @@
+<html>
+<head>
+  <h3>Youtube Downloader</h3>
+  url: <input type="text" id="youtubeurl"/>
+  <a href="#" id="downloadbtn">download</a>
+  <div id="downloadstatus"></div>
+  <a id="downloadlink" href="#" download></a>
+  <ul id="log">
+  </ul>
+</head>
+<body>
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    $('#downloadbtn').click(function(e){
+      var url = $('#youtubeurl').val();
+      $('#downloadstatus').text('0%');
+      $('#log').html('<li>downloading</li>');
+      $('#downloadlink').text('');
+      socket.emit('download', {url: url});
+    });
+
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    socket.on('debug', function(d){
+      $('#log').append('<li>debug: ' + d + '</li>');
+      if (d.indexOf('Merging') > -1) {
+        filename = d.match(/"([^"]+)"/)[1];
+        $('#downloadlink').text(filename);
+        $('#downloadlink').prop('href', filename);
+      }
+      if (d.indexOf(' has already been downloaded and merged') > -1) {
+        filename = d.replace('[download] ', '')
+                    .replace(' has already been downloaded and merged', '');
+        $('#downloadlink').text(filename);
+        $('#downloadlink').prop('href', filename);
+      }
+    });
+    socket.on('warning', function(d){
+      $('#log').append('<li>warning: ' + d + '</li>');
+    });
+    socket.on('error', function(d){
+      $('#log').append('<li>error: ' + d + '</li>');
+    });
+    socket.on('downloading', function(d){
+      $('#log').append('<li>downloading: ' + JSON.stringify(d) + '</li>');
+      $('#downloadstatus').text(d._percent_str);
+    });
+    socket.on('finished', function(d){
+      $('#log').append('<li>finished: ' + JSON.stringify(d) + '</li>');
+    });
+    socket.on('connect', function() {
+      $('#log').append('<li>connected</li>');
+      //socket.emit('init', {data: 'I\'m connected!'});
+    });
+  </script>
+</body>
+</html>
