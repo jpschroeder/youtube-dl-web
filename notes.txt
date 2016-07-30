@@ -1,2 +1,0 @@
-docker build -t youtube_img .
-docker run -d --name youtube_cont -p 80:5000 youtube_img

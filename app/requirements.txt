@@ -2,3 +2,4 @@ youtube-dl
 Flask
 flask-socketio
 eventlet
+python-dotenv
