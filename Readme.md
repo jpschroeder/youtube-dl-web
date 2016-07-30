@@ -5,6 +5,8 @@ This is a web wrapper around the [youtube-dl](http://rg3.github.io/youtube-dl/) 
 
 ## installation
 
+First copy `app/env.sample` to `app/.env` and add your own secret key.
+
 While you can run the project manually using python, it is recommended to use docker and the attached Dockerfile.  The docker commands to build, run, and cleanup the project have been included in the attached Makefile.
 
 `make` will build the image and run a container.  It will listen on port 80.
