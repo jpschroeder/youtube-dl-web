@@ -1,57 +1,222 @@
 <html>
 <head>
-  <h3>Youtube Downloader</h3>
-  url: <input type="text" id="youtubeurl"/>
-  <a href="#" id="downloadbtn">download</a>
-  <div id="downloadstatus"></div>
-  <a id="downloadlink" href="#" download></a>
-  <ul id="log">
-  </ul>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+  <style>
+  body {
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    line-height: 1.5;
+    color: #566b78;
+    margin: 0px;
+  }
+
+  main {
+    padding: 4em 1em;
+    margin: 0 auto;
+    max-width: 50em;
+  }
+
+  h1,
+  h2,
+  strong {
+    color: #333;
+    font-weight: 500;
+  }
+
+  h2 {
+    margin-top: 1em;
+    padding-top: 1em;
+  }
+
+  code,
+  pre {
+    background: #f5f7f9;
+    border-bottom: 1px solid #d8dee9;
+    color: #a7adba;
+
+    padding: 2px 4px;
+    vertical-align: text-bottom;
+    border-left: 2px solid #69c;
+  }
+
+  pre {
+    padding: 1em;
+  }
+
+  a {
+    color: #e81c4f;
+  }
+
+  header {
+    background-color: #263d36;
+    background-image: url("static/header.jpg");
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: cover;
+    line-height: 1.2;
+    padding: 5vw 2em;
+    text-align: center;
+  }
+
+  header img {
+    display: inline-block;
+    height: 120px;
+    vertical-align: top;
+    width: 120px;
+  }
+
+  header h1 {
+    color: white;
+    font-size: 2.5em;
+    font-weight: 300;
+  }
+
+  header a {
+    border: 1px solid #e81c4f;
+    border-radius: 290486px;
+    color: white;
+    font-size: 0.6em;
+    letter-spacing: 0.2em;
+    padding: 1em 2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    /*
+    transition: none 200ms ease-out;
+    transition-property: color, background;
+    */
+  }
+
+  /*
+  header a:hover {
+    background:  #e81c4f;
+    color: white;
+  }
+  */
+
+  #youtubeurl {
+    width: 80%;
+    padding: 10px;
+    margin-right: 1em;
+  }
+  #log {
+    word-wrap: break-word;
+  }
+  #downloadprogress {
+    width:80%;
+  }
+
+  .debug {
+    color: #5fb3b3;
+  }
+  .warning {
+    color: #f99157;
+  }
+  .error {
+    color: #ec5f67;
+  }
+  </style>
 </head>
+
 <body>
+
+  <header id="header">
+    <h1>Youtube Downloader</h1>
+    <p><a>A simple site to help you download videos from youtube.com</a></p>
+  </header>
+
+  <main>
+    <section id="input">
+      <input id="youtubeurl" type="text" placeholder="Youtube Url">
+      <a id="downloadbtn" href="#">Download</a>
+    </section>
+    <section id="status">
+      <p id="downloadstatus"></p>
+      <progress id="downloadprogress" max="100" value="0"></progress>
+      <p id="downloaddesc" style="display:none;">Click below to download the file:</p>
+      <p><a id="downloadlink" href="#" download></a></p>
+    </section>
+    <section id="logsection">
+      <pre>
+      <ul id="log">
+      </ul>
+      </pre>
+    </section>
+  </main>
+
   <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
   <script type="text/javascript" charset="utf-8">
     $('#downloadbtn').click(function(e){
       var url = $('#youtubeurl').val();
-      $('#downloadstatus').text('0%');
-      $('#log').html('<li>downloading</li>');
-      $('#downloadlink').text('');
+      clearlog();
+      debug('Processing');
+      setlink('');
       socket.emit('download', {url: url});
     });
 
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     socket.on('debug', function(d){
-      $('#log').append('<li>debug: ' + d + '</li>');
+      debug(d);
       if (d.indexOf('Merging') > -1) {
         filename = d.match(/"([^"]+)"/)[1];
-        $('#downloadlink').text(filename);
-        $('#downloadlink').prop('href', filename);
+        setlink(filename);
       }
       if (d.indexOf(' has already been downloaded and merged') > -1) {
         filename = d.replace('[download] ', '')
                     .replace(' has already been downloaded and merged', '');
-        $('#downloadlink').text(filename);
-        $('#downloadlink').prop('href', filename);
+        setlink(filename);
       }
     });
     socket.on('warning', function(d){
-      $('#log').append('<li>warning: ' + d + '</li>');
+      warning(d);
     });
     socket.on('error', function(d){
-      $('#log').append('<li>error: ' + d + '</li>');
+      error(d);
     });
     socket.on('downloading', function(d){
-      $('#log').append('<li>downloading: ' + JSON.stringify(d) + '</li>');
-      $('#downloadstatus').text(d._percent_str);
+      var msg = 'Processing ' + d._percent_str + ' of ' + d._total_bytes_str;
+      msg += ' at ' + d._speed_str + ' ETA ' + d._eta_str;
+      $('#downloadprogress').val(Math.round((d.downloaded_bytes / d.total_bytes) * 100));
+      setstatus(msg);
     });
     socket.on('finished', function(d){
-      $('#log').append('<li>finished: ' + JSON.stringify(d) + '</li>');
+      debug('Finished Processing');
+      setlink(d.filename);
     });
     socket.on('connect', function() {
-      $('#log').append('<li>connected</li>');
+      //debug('Connected');
       //socket.emit('init', {data: 'I\'m connected!'});
     });
+
+    function setstatus(msg){
+      $('#downloadstatus').text(msg);
+    }
+    function setlink(filename) {
+      if (filename.length > 0) $('#downloaddesc').show();
+      else $('#downloaddesc').hide();
+
+      $('#downloadlink').text(filename);
+      $('#downloadlink').prop('href', filename);
+    }
+    function debug(txt) {
+      if (txt.indexOf('\u001b') >= 0) {
+        $('#log li:last').remove();
+      }
+      txt = txt.replace('\r','').replace('\u001b','');
+      log('<li class="debug">' + txt + '</li>');
+    }
+    function warning(txt) {
+      log('<li class="warning">' + txt + '</li>');
+    }
+    function error(txt) {
+      log('<li class="error">' + txt + '</li>');
+    }
+    function log(html) {
+      $('#log').append(html);
+    }
+    function clearlog() {
+      $('#log').html('');
+    }
   </script>
 </body>
 </html>
