@@ -17,6 +17,12 @@ You can also push the repository to a [dokku](http://dokku.viewdocs.io/dokku/) i
 
 Paste a youtube link into the main input box.  Once the processing completes, click on the generated link.
 
+## todo
+
+- download collections
+- pull the download url from the route url
+- build a chrome extension
+
 ## credits
 
 - [youtube-dl](https://github.com/rg3/youtube-dl/)
