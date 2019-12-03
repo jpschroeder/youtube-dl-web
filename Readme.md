@@ -9,7 +9,7 @@ First copy `app/env.sample` to `app/.env` and add your own secret key.
 
 While you can run the project manually using python, it is recommended to use docker and the attached Dockerfile.  The docker commands to build, run, and cleanup the project have been included in the attached Makefile.
 
-`make` will build the image and run a container.  It will listen on port 80.
+`make` will build the image and run a container.  It will listen on port 8081.
 
 `make clean` will stop the the container, remove the container, and remove the image.
 
