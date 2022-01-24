@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import os
 import sys
 import time
@@ -27,13 +27,13 @@ def remove(path):
         try:
             os.rmdir(path)
         except OSError:
-            print "Unable to remove folder: %s" % path
+            print("Unable to remove folder: %s" % path)
     else:
         try:
             if os.path.exists(path):
                 os.remove(path)
         except OSError:
-            print "Unable to remove file: %s" % path
+            print("Unable to remove file: %s" % path)
  
 # Remove files from path that are older than the number_of_days
 def cleanup(number_of_days, path):
