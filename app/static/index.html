@@ -168,7 +168,7 @@
       socket.emit('download', {url: url});
     };
 
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
     socket.on('debug', function(d){
       debug(d);
       if (d.indexOf('Merging') > -1) {

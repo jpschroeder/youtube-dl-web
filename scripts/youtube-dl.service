@@ -1,0 +1,12 @@
+[Unit]
+Description=youtube-dl
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+WorkingDirectory=/root/data/youtube-dl/app
+ExecStart=/root/data/youtube-dl/venv/bin/python3 /root/data/youtube-dl/app/main.py --httpaddr localhost:8081
+
+[Install]
+WantedBy=multi-user.target

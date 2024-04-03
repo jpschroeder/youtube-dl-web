@@ -1,10 +1,10 @@
 
+import argparse
 import os
-import sys
 import time
 import threading
 
-import youtube_dl
+from yt_dlp import YoutubeDL
 
 from dotenv import load_dotenv
 
@@ -14,7 +14,7 @@ load_dotenv(dotenv_path)
 import eventlet # use eventlet for the websocket server
 eventlet.monkey_patch()
 
-from flask import Flask, request, send_from_directory
+from flask import Flask, request
 from flask_socketio import SocketIO
 
 app = Flask(__name__)
@@ -72,8 +72,9 @@ def do_download(sid, url):
         'logger': handle,
         'progress_hooks': [handle.progress],
         'outtmpl': 'static/videos/%(title)s-%(id)s.%(ext)s',
+        'no_color': True,
     }
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+    with YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
 
 # Load the main html page
@@ -89,5 +90,18 @@ def handle_init(message):
     thread = threading.Thread(target=do_download, args=(sid, url,))
     thread.start()
 
+def main():
+    parser = argparse.ArgumentParser(description="Web wrapper around youtube-dl")
+    parser.add_argument("--httpaddr", help="the address/port to listen on for http", default="localhost:8080")
+    args = parser.parse_args()
+    httpaddr_parts = args.httpaddr.split(":")
+    if len(httpaddr_parts) != 2:
+        print("Invalid httpaddr")
+        return
+    host = httpaddr_parts[0]
+    port = httpaddr_parts[1]
+    print(f"Listening on http: {host}:{port}")
+    socketio.run(app,host=host,port=port,debug=False)
+
 if __name__ == '__main__':
-    socketio.run(app,host='0.0.0.0',port=5000,debug=False)
+    main()
